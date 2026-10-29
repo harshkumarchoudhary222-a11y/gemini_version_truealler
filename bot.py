@@ -35,26 +35,50 @@ def premium_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="👑 Get Premium",callback_data="premium")]])
 
 def format_result(r:dict)->str:
-    s1,s2=r["server_1"],r["server_2"]
+    s1, s2 = r["server_1"], r["server_2"]
     def v(x): return escape(str(x or "Not found"))
-    status=s1.get("source","unknown")
-    status_label={"directory":"Lookup completed","not-configured":"Provider not configured","provider-error":"Provider error"}.get(status, status.replace("http-","HTTP ") if status.startswith("http-") else "Unavailable")
-    lines=[
-        f"📱 <b>Phone Number</b>\n<code>{escape(r['e164'])}</code>","",
+    status = s1.get("source", "unknown")
+    status_label = {
+        "directory": "Lookup completed",
+        "not-configured": "Provider not configured",
+        "provider-error": "Provider error",
+    }.get(status, status.replace("http-", "HTTP ") if status.startswith("http-") else "Unavailable")
+    carrier_source = s2.get("source", "unknown")
+    carrier_note = {
+        "libphonenumber": "metadata",
+        "prefix-database": "prefix fallback; may be outdated after number portability",
+        "unavailable": "unavailable",
+    }.get(carrier_source, carrier_source)
+
+    lines = [
+        f"📱 <b>Phone Number</b>\n<code>{escape(r['e164'])}</code>",
+        "",
         "🌍 <b>Number Information</b>",
         f"Country: <code>{v(r['country'])}</code> {r['flag']}",
+        f"Country code: <code>+{v(r.get('e164','')[1:])[:2]}</code>",
         f"Type: <code>{v(r['number_type'])}</code>",
         f"Carrier: <code>{v(s2.get('carrier'))}</code>",
+        f"Carrier source: <code>{escape(carrier_note)}</code>",
         f"Region: <code>{v(s2.get('location'))}</code>",
-        f"Time Zone: <code>{v(s2.get('timezone'))}</code>","",
+        f"Time Zone: <code>{v(s2.get('timezone'))}</code>",
+        "",
+        "🔢 <b>Number Formats</b>",
+        f"National: <code>{v(r.get('national'))}</code>",
+        f"International: <code>{v(r.get('international'))}</code>",
+        "",
         "👤 <b>Caller Identity</b>",
         f"Name: <code>{v(s1.get('name'))}</code>",
-        f"Business: <code>{v(s1.get('business'))}</code>","",
+        f"Business: <code>{v(s1.get('business'))}</code>",
+        "",
         "🔎 <b>Sources</b>",
         f"Directory: <code>{escape(status_label)}</code>",
-        "Phone metadata: <code>Available</code>","",
-        f'💬 <a href="https://wa.me/{r["digits_only"]}">Open WhatsApp</a>'
+        "Phone metadata: <code>Available</code>",
+        "",
     ]
+    if r.get("whatsapp_link"):
+        lines.append(f'💬 <a href="{r["whatsapp_link"]}">Open WhatsApp</a>')
+    if r.get("telegram_link"):
+        lines.append(f'✈️ <a href="{r["telegram_link"]}">Open Telegram</a>')
     return "\n".join(lines)
 
 @dp.message(CommandStart())
