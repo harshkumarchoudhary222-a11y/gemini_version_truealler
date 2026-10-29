@@ -6,6 +6,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import Command,CommandStart
 from aiogram.types import BotCommand,InlineKeyboardButton,InlineKeyboardMarkup
 from dotenv import load_dotenv
+from aiohttp import web
 from database import Database
 from lookup_service import lookup_phone_number
 
@@ -118,8 +119,24 @@ async def lookup(message:types.Message):
         await message.answer("✨ <b>More data may be available from configured directory providers.</b>\n"
                              "Use /premium for your plan options.",parse_mode=ParseMode.HTML,reply_markup=premium_keyboard())
 
+async def health(request: web.Request) -> web.Response:
+    return web.json_response({"status": "ok", "service": "telegram-bot"})
+
+async def start_health_server() -> web.AppRunner:
+    app = web.Application()
+    app.router.add_get("/", health)
+    app.router.add_get("/health", health)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.getenv("PORT", "10000"))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    logging.info("Health server listening on port %s", port)
+    return runner
+
 async def main():
     await db.init()
+    await start_health_server()
     await bot.set_my_commands([
       BotCommand(command="start",description="Start bot"),
       BotCommand(command="premium",description="Premium plans"),
