@@ -12,7 +12,8 @@ from lookup_service import lookup_phone_number
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO,format="%(asctime)s %(levelname)s %(message)s")
-BOT_TOKEN=os.getenv("BOT_TOKEN","").strip()
+BOT_TOKEN=os.getenv("bot_token") or os.getenv("BOT_TOKEN") or ""
+BOT_TOKEN=BOT_TOKEN.strip()
 DEFAULT_REGION=os.getenv("DEFAULT_REGION","IN").strip().upper()
 DB_PATH=os.getenv("DATABASE_PATH","bot_data.db")
 FREE_LOOKUPS=int(os.getenv("FREE_LOOKUPS_PER_DAY","5"))
