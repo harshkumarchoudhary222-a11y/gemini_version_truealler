@@ -37,19 +37,25 @@ def premium_keyboard():
 def format_result(r:dict)->str:
     s1,s2=r["server_1"],r["server_2"]
     def v(x): return escape(str(x or "Not found"))
-    return (f"📱 <b>Number:</b> <code>{escape(r['e164'])}</code>\n"
-            f"🌐 <b>Country:</b> <code>{v(r['country'])} {r['flag']}</code>\n"
-            f"📞 <b>Type:</b> <code>{v(r['number_type'])}</code>\n\n"
-            f"<b>Server 1 — Directory</b>\n\n"
-            f"<b>Name:</b> <code>{v(s1.get('name'))}</code>\n"
-            f"<b>Carrier:</b> <code>{v(s1.get('carrier'))}</code>\n"
-            f"<b>TimeZone:</b> <code>{v(s1.get('timezone'))}</code>\n"
-            f"<b>Location:</b> <code>{v(s1.get('location'))}</code>\n\n"
-            f"<b>Server 2 — Phone metadata</b>\n\n"
-            f"<b>Carrier:</b> <code>{v(s2.get('carrier'))}</code>\n"
-            f"<b>TimeZone:</b> <code>{v(s2.get('timezone'))}</code>\n"
-            f"<b>Location:</b> <code>{v(s2.get('location'))}</code>\n\n"
-            f"🔗 <a href=\"https://wa.me/{r['digits_only']}\">WhatsApp</a>")
+    status=s1.get("source","unknown")
+    status_label={"directory":"Lookup completed","not-configured":"Provider not configured","provider-error":"Provider error"}.get(status, status.replace("http-","HTTP ") if status.startswith("http-") else "Unavailable")
+    lines=[
+        f"📱 <b>Phone Number</b>\n<code>{escape(r['e164'])}</code>","",
+        "🌍 <b>Number Information</b>",
+        f"Country: <code>{v(r['country'])}</code> {r['flag']}",
+        f"Type: <code>{v(r['number_type'])}</code>",
+        f"Carrier: <code>{v(s2.get('carrier'))}</code>",
+        f"Region: <code>{v(s2.get('location'))}</code>",
+        f"Time Zone: <code>{v(s2.get('timezone'))}</code>","",
+        "👤 <b>Caller Identity</b>",
+        f"Name: <code>{v(s1.get('name'))}</code>",
+        f"Business: <code>{v(s1.get('business'))}</code>","",
+        "🔎 <b>Sources</b>",
+        f"Directory: <code>{escape(status_label)}</code>",
+        "Phone metadata: <code>Available</code>","",
+        f'💬 <a href="https://wa.me/{r["digits_only"]}">Open WhatsApp</a>'
+    ]
+    return "\n".join(lines)
 
 @dp.message(CommandStart())
 async def start(message:types.Message):
