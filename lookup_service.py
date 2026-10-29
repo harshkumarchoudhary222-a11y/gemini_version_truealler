@@ -60,6 +60,7 @@ async def lookup_phone_number(raw_input:str,default_region:str="IN",directory:Di
     location=geocoder.description_for_number(parsed,"en") or country
     carrier_name=carrier.name_for_number(parsed,"en") or "Not found"
     zones=timezone.time_zones_for_number(parsed); tz=zones[0] if zones else "Not found"
+    if tz == "Asia/Calcutta": tz = "Asia/Kolkata"
     type_name={phonenumbers.PhoneNumberType.MOBILE:"Mobile",
                phonenumbers.PhoneNumberType.FIXED_LINE:"Fixed line",
                phonenumbers.PhoneNumberType.FIXED_LINE_OR_MOBILE:"Fixed line / mobile",
